@@ -39,4 +39,43 @@ CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_supplier ON products(supplier_id);
 CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
 
+-- Product Images table
+CREATE TABLE IF NOT EXISTS product_images (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    image_path VARCHAR(500) NOT NULL,
+    thumbnail_path VARCHAR(500),
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index for product images
+CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id);
+
+-- Category Images table
+CREATE TABLE IF NOT EXISTS category_images (
+    id SERIAL PRIMARY KEY,
+    category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    image_path VARCHAR(500) NOT NULL,
+    thumbnail_path VARCHAR(500),
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index for category images
+CREATE INDEX IF NOT EXISTS idx_category_images_category ON category_images(category_id);
+
+-- Supplier Images table
+CREATE TABLE IF NOT EXISTS supplier_images (
+    id SERIAL PRIMARY KEY,
+    supplier_id INTEGER NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
+    image_path VARCHAR(500) NOT NULL,
+    thumbnail_path VARCHAR(500),
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index for supplier images
+CREATE INDEX IF NOT EXISTS idx_supplier_images_supplier ON supplier_images(supplier_id);
+
 

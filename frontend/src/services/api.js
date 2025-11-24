@@ -18,6 +18,17 @@ export const productsAPI = {
   delete: (id) => api.delete(`/products/${id}`),
   getByCategory: (categoryId) => api.get(`/products/category/${categoryId}`),
   getLowStock: (threshold) => api.get(`/products/low-stock/${threshold}`),
+  // Image upload methods
+  uploadImages: (productId, formData) => {
+    return axios.post(`${API_BASE_URL}/products/${productId}/images`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  deleteImage: (productId, imageId) => api.delete(`/products/${productId}/images/${imageId}`),
+  updateImageOrder: (productId, imageId, displayOrder) => 
+    api.put(`/products/${productId}/images/${imageId}/order`, { display_order: displayOrder }),
 };
 
 // Categories API
@@ -27,6 +38,17 @@ export const categoriesAPI = {
   create: (data) => api.post('/categories', data),
   update: (id, data) => api.put(`/categories/${id}`, data),
   delete: (id) => api.delete(`/categories/${id}`),
+  // Image upload methods
+  uploadImages: (categoryId, formData) => {
+    return axios.post(`${API_BASE_URL}/categories/${categoryId}/images`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  deleteImage: (categoryId, imageId) => api.delete(`/categories/${categoryId}/images/${imageId}`),
+  updateImageOrder: (categoryId, imageId, displayOrder) => 
+    api.put(`/categories/${categoryId}/images/${imageId}/order`, { display_order: displayOrder }),
 };
 
 // Suppliers API
@@ -36,6 +58,17 @@ export const suppliersAPI = {
   create: (data) => api.post('/suppliers', data),
   update: (id, data) => api.put(`/suppliers/${id}`, data),
   delete: (id) => api.delete(`/suppliers/${id}`),
+  // Image upload methods
+  uploadImages: (supplierId, formData) => {
+    return axios.post(`${API_BASE_URL}/suppliers/${supplierId}/images`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  deleteImage: (supplierId, imageId) => api.delete(`/suppliers/${supplierId}/images/${imageId}`),
+  updateImageOrder: (supplierId, imageId, displayOrder) => 
+    api.put(`/suppliers/${supplierId}/images/${imageId}/order`, { display_order: displayOrder }),
 };
 
 export default api;

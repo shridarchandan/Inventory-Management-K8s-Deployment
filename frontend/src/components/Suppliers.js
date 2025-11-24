@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { suppliersAPI } from '../services/api';
+import { FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
 import './Suppliers.css';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const Suppliers = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [showImageGallery, setShowImageGallery] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -33,15 +39,65 @@ const Suppliers = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      let supplierId;
       if (editingSupplier) {
         await suppliersAPI.update(editingSupplier.id, formData);
+        supplierId = editingSupplier.id;
       } else {
-        await suppliersAPI.create(formData);
+        const response = await suppliersAPI.create(formData);
+        supplierId = response.data.id;
       }
+
+      // Upload images if any were selected
+      if (selectedImages.length > 0 && supplierId) {
+        await handleImageUpload(supplierId);
+      }
+
       fetchSuppliers();
       handleCloseModal();
     } catch (error) {
       alert(error.response?.data?.error || 'Error saving supplier');
+    }
+  };
+
+  const handleImageUpload = async (supplierId) => {
+    if (selectedImages.length === 0) return;
+
+    setUploadingImages(true);
+    try {
+      const formData = new FormData();
+      selectedImages.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      await suppliersAPI.uploadImages(supplierId, formData);
+      setSelectedImages([]);
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert(error.response?.data?.error || 'Error uploading images');
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedImages([...selectedImages, ...files]);
+  };
+
+  const removeSelectedImage = (index) => {
+    setSelectedImages(selectedImages.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteImage = async (supplierId, imageId, e) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this image?')) {
+      try {
+        await suppliersAPI.deleteImage(supplierId, imageId);
+        fetchSuppliers();
+      } catch (error) {
+        alert(error.response?.data?.error || 'Error deleting image');
+      }
     }
   };
 
@@ -53,6 +109,7 @@ const Suppliers = () => {
       phone: supplier.phone || '',
       address: supplier.address || '',
     });
+    setSelectedImages([]);
     setShowModal(true);
   };
 
@@ -70,12 +127,19 @@ const Suppliers = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingSupplier(null);
+    setSelectedImages([]);
     setFormData({
       name: '',
       email: '',
       phone: '',
       address: '',
     });
+  };
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    return `${API_BASE_URL}/${imagePath}`;
   };
 
   if (loading) {
@@ -97,6 +161,33 @@ const Suppliers = () => {
         ) : (
           suppliers.map((supplier) => (
             <div key={supplier.id} className="supplier-card">
+              {/* Supplier Images Gallery */}
+              {supplier.images && supplier.images.length > 0 && (
+                <div className="supplier-images">
+                  <div className="supplier-image-main">
+                    <img
+                      src={getImageUrl(supplier.images[0].thumbnail_path || supplier.images[0].image_path)}
+                      alt={supplier.name}
+                      onClick={() => setShowImageGallery(supplier.id)}
+                    />
+                    {supplier.images.length > 1 && (
+                      <div className="image-count-badge">{supplier.images.length}</div>
+                    )}
+                  </div>
+                  {supplier.images.length > 1 && (
+                    <div className="supplier-image-thumbnails">
+                      {supplier.images.slice(0, 4).map((img, idx) => (
+                        <img
+                          key={img.id}
+                          src={getImageUrl(img.thumbnail_path || img.image_path)}
+                          alt={`${supplier.name} ${idx + 1}`}
+                          onClick={() => setShowImageGallery(supplier.id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="supplier-header">
                 <h3>{supplier.name}</h3>
                 <div className="supplier-actions">
@@ -105,14 +196,14 @@ const Suppliers = () => {
                     onClick={() => handleEdit(supplier)}
                     title="Edit"
                   >
-                    ✏️
+                    <FaEdit />
                   </button>
                   <button
                     className="btn-icon"
                     onClick={() => handleDelete(supplier.id)}
                     title="Delete"
                   >
-                    🗑️
+                    <FaTrash />
                   </button>
                 </div>
               </div>
@@ -146,7 +237,9 @@ const Suppliers = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}</h3>
-              <button className="btn-close" onClick={handleCloseModal}>×</button>
+              <button className="btn-close" onClick={handleCloseModal}>
+                <FaTimes />
+              </button>
             </div>
             <form onSubmit={handleSubmit} className="form">
               <div className="form-group">
@@ -182,6 +275,63 @@ const Suppliers = () => {
                   rows="3"
                 />
               </div>
+              
+              {/* Image Upload Section */}
+              <div className="form-group">
+                <label>Supplier Images</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageSelect}
+                  className="file-input"
+                />
+                {selectedImages.length > 0 && (
+                  <div className="selected-images-preview">
+                    {selectedImages.map((file, index) => (
+                      <div key={index} className="image-preview-item">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview ${index + 1}`}
+                        />
+                        <button
+                          type="button"
+                          className="remove-image-btn"
+                          onClick={() => removeSelectedImage(index)}
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {editingSupplier && editingSupplier.images && editingSupplier.images.length > 0 && (
+                  <div className="existing-images">
+                    <label>Existing Images:</label>
+                    <div className="existing-images-grid">
+                      {editingSupplier.images.map((img) => (
+                        <div key={img.id} className="existing-image-item">
+                          <img
+                            src={getImageUrl(img.thumbnail_path || img.image_path)}
+                            alt="Supplier"
+                          />
+                          <button
+                            type="button"
+                            className="remove-image-btn"
+                            onClick={(e) => handleDeleteImage(editingSupplier.id, img.id, e)}
+                          >
+                            <FaTimes />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {!editingSupplier && (
+                  <small className="form-hint">You can upload images after creating the supplier</small>
+                )}
+              </div>
+
               <div className="form-actions">
                 <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>
                   Cancel
@@ -191,6 +341,41 @@ const Suppliers = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Image Gallery Modal */}
+      {showImageGallery && (
+        <div className="modal-overlay" onClick={() => setShowImageGallery(null)}>
+          <div className="gallery-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="gallery-header">
+              <h3>Supplier Images</h3>
+              <button className="btn-close" onClick={() => setShowImageGallery(null)}>
+                <FaTimes />
+              </button>
+            </div>
+            <div className="gallery-content">
+              {suppliers.find(s => s.id === showImageGallery)?.images?.map((img) => (
+                <div key={img.id} className="gallery-image-item">
+                  <img
+                    src={getImageUrl(img.image_path)}
+                    alt="Supplier"
+                  />
+                  <button
+                    className="gallery-delete-btn"
+                    onClick={(e) => {
+                      handleDeleteImage(showImageGallery, img.id, e);
+                      if (suppliers.find(s => s.id === showImageGallery)?.images?.length === 1) {
+                        setShowImageGallery(null);
+                      }
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

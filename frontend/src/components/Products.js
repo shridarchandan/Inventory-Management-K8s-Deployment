@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { productsAPI, categoriesAPI, suppliersAPI } from '../services/api';
+import { FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
 import './Products.css';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -9,6 +12,9 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [showImageGallery, setShowImageGallery] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -52,16 +58,65 @@ const Products = () => {
         supplier_id: formData.supplier_id || null,
       };
 
+      let productId;
       if (editingProduct) {
         await productsAPI.update(editingProduct.id, submitData);
+        productId = editingProduct.id;
       } else {
-        await productsAPI.create(submitData);
+        const response = await productsAPI.create(submitData);
+        productId = response.data.id;
+      }
+
+      // Upload images if any were selected
+      if (selectedImages.length > 0 && productId) {
+        await handleImageUpload(productId);
       }
 
       fetchData();
       handleCloseModal();
     } catch (error) {
       alert(error.response?.data?.error || 'Error saving product');
+    }
+  };
+
+  const handleImageUpload = async (productId) => {
+    if (selectedImages.length === 0) return;
+
+    setUploadingImages(true);
+    try {
+      const formData = new FormData();
+      selectedImages.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      await productsAPI.uploadImages(productId, formData);
+      setSelectedImages([]);
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert(error.response?.data?.error || 'Error uploading images');
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedImages([...selectedImages, ...files]);
+  };
+
+  const removeSelectedImage = (index) => {
+    setSelectedImages(selectedImages.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteImage = async (productId, imageId, e) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this image?')) {
+      try {
+        await productsAPI.deleteImage(productId, imageId);
+        fetchData();
+      } catch (error) {
+        alert(error.response?.data?.error || 'Error deleting image');
+      }
     }
   };
 
@@ -76,6 +131,7 @@ const Products = () => {
       category_id: product.category_id || '',
       supplier_id: product.supplier_id || '',
     });
+    setSelectedImages([]);
     setShowModal(true);
   };
 
@@ -93,6 +149,7 @@ const Products = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingProduct(null);
+    setSelectedImages([]);
     setFormData({
       name: '',
       description: '',
@@ -102,6 +159,13 @@ const Products = () => {
       category_id: '',
       supplier_id: '',
     });
+  };
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    // Handle both relative and absolute paths
+    if (imagePath.startsWith('http')) return imagePath;
+    return `${API_BASE_URL}/${imagePath}`;
   };
 
   if (loading) {
@@ -123,6 +187,33 @@ const Products = () => {
         ) : (
           products.map((product) => (
             <div key={product.id} className="product-card">
+              {/* Product Images Gallery */}
+              {product.images && product.images.length > 0 && (
+                <div className="product-images">
+                  <div className="product-image-main">
+                    <img
+                      src={getImageUrl(product.images[0].thumbnail_path || product.images[0].image_path)}
+                      alt={product.name}
+                      onClick={() => setShowImageGallery(product.id)}
+                    />
+                    {product.images.length > 1 && (
+                      <div className="image-count-badge">{product.images.length}</div>
+                    )}
+                  </div>
+                  {product.images.length > 1 && (
+                    <div className="product-image-thumbnails">
+                      {product.images.slice(0, 4).map((img, idx) => (
+                        <img
+                          key={img.id}
+                          src={getImageUrl(img.thumbnail_path || img.image_path)}
+                          alt={`${product.name} ${idx + 1}`}
+                          onClick={() => setShowImageGallery(product.id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="product-header">
                 <h3>{product.name}</h3>
                 <div className="product-actions">
@@ -131,14 +222,14 @@ const Products = () => {
                     onClick={() => handleEdit(product)}
                     title="Edit"
                   >
-                    ✏️
+                    <FaEdit />
                   </button>
                   <button
                     className="btn-icon"
                     onClick={() => handleDelete(product.id)}
                     title="Delete"
                   >
-                    🗑️
+                    <FaTrash />
                   </button>
                 </div>
               </div>
@@ -183,7 +274,9 @@ const Products = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
-              <button className="btn-close" onClick={handleCloseModal}>×</button>
+              <button className="btn-close" onClick={handleCloseModal}>
+                <FaTimes />
+              </button>
             </div>
             <form onSubmit={handleSubmit} className="form">
               <div className="form-group">
@@ -264,6 +357,63 @@ const Products = () => {
                   </select>
                 </div>
               </div>
+              
+              {/* Image Upload Section */}
+              <div className="form-group">
+                <label>Product Images</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageSelect}
+                  className="file-input"
+                />
+                {selectedImages.length > 0 && (
+                  <div className="selected-images-preview">
+                    {selectedImages.map((file, index) => (
+                      <div key={index} className="image-preview-item">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview ${index + 1}`}
+                        />
+                        <button
+                          type="button"
+                          className="remove-image-btn"
+                          onClick={() => removeSelectedImage(index)}
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {editingProduct && editingProduct.images && editingProduct.images.length > 0 && (
+                  <div className="existing-images">
+                    <label>Existing Images:</label>
+                    <div className="existing-images-grid">
+                      {editingProduct.images.map((img) => (
+                        <div key={img.id} className="existing-image-item">
+                          <img
+                            src={getImageUrl(img.thumbnail_path || img.image_path)}
+                            alt="Product"
+                          />
+                          <button
+                            type="button"
+                            className="remove-image-btn"
+                            onClick={(e) => handleDeleteImage(editingProduct.id, img.id, e)}
+                          >
+                            <FaTimes />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {!editingProduct && (
+                  <small className="form-hint">You can upload images after creating the product</small>
+                )}
+              </div>
+
               <div className="form-actions">
                 <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>
                   Cancel
@@ -273,6 +423,41 @@ const Products = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Image Gallery Modal */}
+      {showImageGallery && (
+        <div className="modal-overlay" onClick={() => setShowImageGallery(null)}>
+          <div className="gallery-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="gallery-header">
+              <h3>Product Images</h3>
+              <button className="btn-close" onClick={() => setShowImageGallery(null)}>
+                <FaTimes />
+              </button>
+            </div>
+            <div className="gallery-content">
+              {products.find(p => p.id === showImageGallery)?.images?.map((img) => (
+                <div key={img.id} className="gallery-image-item">
+                  <img
+                    src={getImageUrl(img.image_path)}
+                    alt="Product"
+                  />
+                  <button
+                    className="gallery-delete-btn"
+                    onClick={(e) => {
+                      handleDeleteImage(showImageGallery, img.id, e);
+                      if (products.find(p => p.id === showImageGallery)?.images?.length === 1) {
+                        setShowImageGallery(null);
+                      }
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

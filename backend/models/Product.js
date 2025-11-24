@@ -71,6 +71,39 @@ class Product {
     );
     return result.rows;
   }
+
+  // Image methods
+  static async getProductImages(productId) {
+    const result = await pool.query(
+      'SELECT * FROM product_images WHERE product_id = $1 ORDER BY display_order ASC, created_at ASC',
+      [productId]
+    );
+    return result.rows;
+  }
+
+  static async addProductImage(productId, imagePath, thumbnailPath, displayOrder = 0) {
+    const result = await pool.query(
+      'INSERT INTO product_images (product_id, image_path, thumbnail_path, display_order) VALUES ($1, $2, $3, $4) RETURNING *',
+      [productId, imagePath, thumbnailPath, displayOrder]
+    );
+    return result.rows[0];
+  }
+
+  static async deleteProductImage(imageId) {
+    const result = await pool.query(
+      'DELETE FROM product_images WHERE id = $1 RETURNING *',
+      [imageId]
+    );
+    return result.rows[0];
+  }
+
+  static async updateImageOrder(imageId, displayOrder) {
+    const result = await pool.query(
+      'UPDATE product_images SET display_order = $1 WHERE id = $2 RETURNING *',
+      [displayOrder, imageId]
+    );
+    return result.rows[0];
+  }
 }
 
 module.exports = Product;

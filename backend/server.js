@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (uploaded images)
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Root endpoint
 app.get('/', (req, res) => {

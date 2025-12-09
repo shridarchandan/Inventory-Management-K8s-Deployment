@@ -11,7 +11,7 @@ function App() {
       <div className="App">
         <nav className="navbar">
           <div className="nav-container">
-            <h1 className="nav-logo">📦 Inventory Manager</h1>
+            <h1 className="nav-logo">📦 Inventory Manager!</h1>
             <div className="nav-links">
               <Link to="/" className="nav-link">Products</Link>
               <Link to="/categories" className="nav-link">Categories</Link>

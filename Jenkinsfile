@@ -9,21 +9,17 @@ pipeline {
 
   stages {
 
-    //stage('Cleanup Docker Space') {
-      //steps {
-        //sh '''
-          //echo "Pre-build cleanup..."
-          //docker system prune -af --volumes || true
-        //'''
-      //}
-    //}
-
-    stage('Cleanup Docker Space & Checkout') {
+    stage('Cleanup Docker Space') {
       steps {
         sh '''
           echo "Pre-build cleanup..."
           docker system prune -af --volumes || true
-          '''
+        '''
+      }
+    }
+
+    stage('Checkout') {
+      steps {
         checkout scmGit(branches: [[name: '*/master']], extensions: [],
           userRemoteConfigs: [[url: 'https://github.com/shridarchandan/Inventory-Management']])
         echo('Checkout Successful')

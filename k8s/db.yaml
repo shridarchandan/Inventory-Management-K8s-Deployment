@@ -99,19 +99,7 @@ data:
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-pvc
-  namespace: inventory
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  storageClassName: gp2    
----
+ 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -149,8 +137,6 @@ spec:
                   name: app-config
                   key: DB_NAME
           volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
             - name: init-sql
               mountPath: /docker-entrypoint-initdb.d
 

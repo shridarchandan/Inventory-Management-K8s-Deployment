@@ -7,5 +7,6 @@ data:
   DB_HOST: db
   DB_PORT: "5432"
   DB_NAME: inventory_db
-  REACT_APP_API_URL: "http://54.90.137.148:5000"
+  REACT_APP_API_URL: "http://backend-svc:5000"
+
 

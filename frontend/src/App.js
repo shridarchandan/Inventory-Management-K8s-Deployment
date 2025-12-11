@@ -109,7 +109,7 @@ function App() {
       <AppBar position="static" color="primary" elevation={3}>
         <Toolbar sx={{ maxWidth: 1440, mx: 'auto', width: '100%' }}>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            📦 Inventory Manager
+            📦 Inventory Management
           </Typography>
           {isAuthenticated ? (
             <Stack direction="row" spacing={2} alignItems="center">

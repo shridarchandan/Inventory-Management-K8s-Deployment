@@ -191,7 +191,7 @@ These will store the Docker images built in Jenkins.
 
 On the **Deployment Server**, attach an IAM role that includes the permissions shown in the attached screenshot (EKS admin + EC2/VPC access).
 
-![Alt text](images/inventory%20project%20screenshots/Roles%for%deployment.PNG)
+![Deployment Roles](images/inventory%20project%20screenshots/Roles%20for%20deployment.PNG)
 
 ---
 
@@ -284,7 +284,7 @@ http://a482944cbd6d94306ad2e043f89aabc8-1616021472.us-east-1.elb.amazonaws.com:5
 
 Now the application will be live at the Load Balancer DNS.
 
-![Alt text](images/inventory%20project%20screenshots/final%op.PNG)
+![Final Output](images/inventory%20project%20screenshots/final%20op.PNG)
 
 ---
 

@@ -1,5 +1,6 @@
 # Product Inventory Management System
-![Alt text](3tier-app-k8s.svg)
+
+
 A full-stack CRUD application for managing products, categories, and suppliers with a modern web interface.
 
 ## Features

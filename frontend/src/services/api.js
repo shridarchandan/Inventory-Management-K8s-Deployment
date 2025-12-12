@@ -1,7 +1,7 @@
   import axios from 'axios';
 
-  //const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-  const API_BASE_URL = "http://a482944cbd6d94306ad2e043f89aabc8-1616021472.us-east-1.elb.amazonaws.com:5000/api";
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  //const API_BASE_URL = "http://a482944cbd6d94306ad2e043f89aabc8-1616021472.us-east-1.elb.amazonaws.com:5000/api";
 
 
   const api = axios.create({

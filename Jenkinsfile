@@ -33,13 +33,16 @@ pipeline {
       steps {
         script {
           def VERSION = sh(script: "date +'%Y-%m-%d-%H%M'", returnStdout: true).trim()
+          def apiUrl = sh(script: "kubectl get configmap app-config -n inventory -o jsonpath='{.data.REACT_APP_API_URL}'", returnStdout: true).trim()
           env.IMAGE_TAG = "v${VERSION}"
           env.BACKEND_LOCAL  = "inventory-backend:${env.IMAGE_TAG}"
           env.FRONTEND_LOCAL = "inventory-frontend:${env.IMAGE_TAG}"
 
           sh """
             docker build --no-cache -t ${BACKEND_LOCAL} ./backend
-            docker build --no-cache -t ${FRONTEND_LOCAL} ./frontend
+            docker build --no-cache \
+            --build-arg REACT_APP_API_URL=${apiUrl} \
+            -t ${FRONTEND_LOCAL} ./frontend
           """
         }
       }

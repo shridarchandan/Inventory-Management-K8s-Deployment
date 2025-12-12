@@ -194,19 +194,5 @@ The frontend will be available at `http://localhost:3000`
 - created_at
 - updated_at
 
-## Notes for Docker Practice
-
-This application is designed to be containerized. You'll need to create:
-- Dockerfile for the backend
-- Dockerfile for the frontend
-- docker-compose.yml to orchestrate:
-  - PostgreSQL database service
-  - Backend API service
-  - Frontend service
-  - Proper networking between services
-  - Environment variables
-  - Volume mounts for database persistence
-
-Good luck with your Docker practice! 🐳
 
 

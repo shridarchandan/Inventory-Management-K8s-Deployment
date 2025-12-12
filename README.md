@@ -16,7 +16,7 @@ The high-level architecture is:
 
 ---
 
-![Alt text](3tier-app-k8s.svg)
+![Alt text](images/k8s-proj-arc.PNG)
 
 ## Tech stack
 

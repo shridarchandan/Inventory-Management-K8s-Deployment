@@ -158,7 +158,7 @@ These will be used in the pipeline.
 
 Create a role and attach the required policies shown in the screenshot (ECR access, EKS access, EC2, IAM, etc.).
 
-![Alt text](images/inventory project screenshots/Jenkins role.PNG)
+![Alt text](images/inventory%20project%20screenshots/Jenkins%role.PNG)
 
 Attach this role to the **Jenkins Server EC2 instance**.
 
@@ -190,7 +190,7 @@ These will store the Docker images built in Jenkins.
 
 On the **Deployment Server**, attach an IAM role that includes the permissions shown in the attached screenshot (EKS admin + EC2/VPC access).
 
-![Alt text](images/inventory project screenshots/Roles for deployment.PNG)
+![Alt text](images/inventory%20project%20screenshots/Roles%for%deployment.PNG)
 
 ---
 
@@ -282,6 +282,8 @@ http://a482944cbd6d94306ad2e043f89aabc8-1616021472.us-east-1.elb.amazonaws.com:5
 ```
 
 Now the application will be live at the Load Balancer DNS.
+
+images/inventory%20project%20screenshots/final%op.PNG
 
 ---
 

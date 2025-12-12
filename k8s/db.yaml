@@ -154,9 +154,6 @@ spec:
             failureThreshold: 3
 
       volumes:
-        - name: postgres-data
-          persistentVolumeClaim:
-            claimName: postgres-pvc
         - name: init-sql
           configMap:
             name: db-init-sql

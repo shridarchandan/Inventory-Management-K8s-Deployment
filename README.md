@@ -158,7 +158,8 @@ These will be used in the pipeline.
 
 Create a role and attach the required policies shown in the screenshot (ECR access, EKS access, EC2, IAM, etc.).
 
-![Alt text](images/inventory%20project%20screenshots/Jenkins%role.PNG)
+![Jenkins Role](images/inventory%20project%20screenshots/Jenkins%20role.PNG)
+
 
 Attach this role to the **Jenkins Server EC2 instance**.
 

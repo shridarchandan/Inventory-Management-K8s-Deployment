@@ -16,7 +16,7 @@ The high-level architecture is:
 
 ---
 
-
+![Alt text](images/k8s-proj-arc.PNG)
 
 ## Tech stack
 
